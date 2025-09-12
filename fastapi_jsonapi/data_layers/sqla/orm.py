@@ -188,7 +188,11 @@ class SqlalchemyDataLayer(BaseDataLayer):
                 field_name=relation_name,
             )
             if relationship_info is None:
-                log.warning("Not found relationship %s for resource_type %s", relation_name, self.resource_type)
+                log.warning(
+                    "Not found relationship %s for resource_type %s",
+                    relation_name,
+                    self.resource_type,
+                )
                 continue
 
             related_model = models_storage.get_model(relationship_info.resource_type)
@@ -197,7 +201,9 @@ class SqlalchemyDataLayer(BaseDataLayer):
                 related_data = await self.get_related_objects(
                     related_model=related_model,
                     related_id_field=relationship_info.id_field_name,
-                    ids=[r.id for r in relationship_in.data] if relationship_info.many else [relationship_in.data.id],
+                    ids=(
+                        [r.id for r in relationship_in.data] if relationship_info.many else [relationship_in.data.id]
+                    ),
                 )
 
             await self.check_object_has_relationship_or_raise(obj, relation_name)
@@ -387,10 +393,11 @@ class SqlalchemyDataLayer(BaseDataLayer):
             filter_info=qs.filters,
             sorting_info=qs.sorts,
         )
-        relationships_info = [
-            relationships_info_storage.get_info(self.resource_type, relationship_path)
-            for relationship_path in relationship_paths
-        ]
+        relationships_info = []
+        for relationship_path in sorted(relationship_paths, key=len):
+            info = relationships_info_storage.get_info(self.resource_type, relationship_path)
+            if info is not None:
+                relationships_info.append(info)
 
         options = self.get_fields_options(self.resource_type, qs)
         if self.eagerload_includes_:
@@ -570,7 +577,10 @@ class SqlalchemyDataLayer(BaseDataLayer):
 
         if isinstance(related_objects, InstrumentedList):
             return obj, [{"type": related_type_, "id": getattr(obj_, related_id_field)} for obj_ in related_objects]
-        return obj, {"type": related_type_, "id": getattr(related_objects, related_id_field)}
+        return obj, {
+            "type": related_type_,
+            "id": getattr(related_objects, related_id_field),
+        }
 
     async def update_relationship(
         self,
