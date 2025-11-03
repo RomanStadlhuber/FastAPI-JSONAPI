@@ -415,28 +415,34 @@ class SqlalchemyDataLayer(BaseDataLayer):
                 ),
             )
 
+        # build the query but do not perform pagination
         query = self._base_sql.query(
             model=self.model,
             filters=filters,
             jsonapi_join=relationships_info,
-            number=qs.pagination.number,
             options=options,
             order=self.get_sort_expressions(qs),
-            size=qs.pagination.size,
             stmt=self._query,
         )
-        collection = await self._base_sql.all(
-            session=self.session,
-            stmt=query,
-        )
-
+        # get the total number of objects regardless of pagination
         objects_count = self.default_collection_count
         if not self.disable_collection_count:
             objects_count = await self._base_sql.count(
                 session=self.session,
                 stmt=query,
             )
-
+        # apply pagination settings to query
+        query = await self._base_sql.paginate(
+            stmt=query,
+            number=qs.pagination.number,
+            size=qs.pagination.size,
+        )
+        # perform query incl. pagination (if any)
+        collection = await self._base_sql.all(
+            session=self.session,
+            stmt=query,
+        )
+        # postprocessing after collection retrieval
         collection = await self.after_get_collection(collection, qs, view_kwargs)
         return objects_count, list(collection)
 

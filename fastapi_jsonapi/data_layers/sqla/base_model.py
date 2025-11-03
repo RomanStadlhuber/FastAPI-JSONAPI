@@ -203,11 +203,6 @@ class BaseSQLA:
             for relationship_info in jsonapi_join:
                 stmt = stmt.join(relationship_info.aliased_model, relationship_info.join_column)
 
-        if size not in [0, None]:
-            stmt = stmt.limit(size)
-            number = number or 1
-            stmt = stmt.offset((number - 1) * size)
-
         if distinct_:
             stmt = stmt.distinct()
 
@@ -215,6 +210,19 @@ class BaseSQLA:
             for join_model, predicate in join:
                 stmt = stmt.join(join_model, predicate)
 
+        return stmt
+
+    @classmethod
+    async def paginate(
+        cls,
+        stmt: Select,
+        number: Optional[int] = None,
+        size: Optional[int] = None,
+    ):
+        if size is not None and size > 0:
+            stmt = stmt.limit(size)
+            number = number or 1
+            stmt = stmt.offset((number - 1) * size)
         return stmt
 
     @classmethod
