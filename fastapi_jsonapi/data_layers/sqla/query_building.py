@@ -326,11 +326,16 @@ def prepare_relationships_info(
             {"field": "baz.field_name", "op": "eq", "val": ""},
         ]
 
-    It returns:
-        ("foo.bar", "baz")
+    It returns the paths and every parent path:
+        ("foo", "foo.bar", "baz")
     """
     relationship_paths = gather_relationship_paths(filter_info)
     relationship_paths.update(gather_relationship_paths(sorting_info))
+    # a nested path is joined through the alias of every parent path,
+    # so each parent must be joined as well or the parent alias becomes a free FROM item
+    for relationship_path in list(relationship_paths):
+        parts = relationship_path.split(".")
+        relationship_paths.update(".".join(parts[:depth]) for depth in range(1, len(parts)))
     return gather_relationships(
         entrypoint_resource_type=resource_type,
         entrypoint_model=model,
