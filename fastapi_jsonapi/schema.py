@@ -9,13 +9,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from inspect import isclass
 from types import GenericAlias
-from typing import TYPE_CHECKING, Any, Callable, Optional, Sequence, Type, Union, get_args
+from typing import TYPE_CHECKING, Any, Callable, Literal, Optional, Sequence, Type, Union, get_args
 
 from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict, Field
-
-# noinspection PyProtectedMember
-from pydantic._internal._typing_extra import is_none_type
 
 # noinspection PyProtectedMember
 from pydantic.fields import FieldInfo
@@ -25,6 +22,13 @@ from fastapi_jsonapi.types_metadata import RelationshipInfo
 
 if TYPE_CHECKING:
     from fastapi_jsonapi.data_typing import TypeSchema
+
+_NONE_TYPES = (None, type(None), Literal[None])
+
+
+def is_none_type(tp: Any, /) -> bool:
+    """`None` in an annotation; pydantic 2.14 removed its private helper."""
+    return tp in _NONE_TYPES
 
 
 class BaseJSONAPIRelationshipSchema(BaseModel):

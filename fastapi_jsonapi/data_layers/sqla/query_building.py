@@ -7,9 +7,6 @@ from typing import Any, Optional, Type, Union, get_args
 from pydantic import BaseModel, ConfigDict, PydanticSchemaGenerationError, TypeAdapter
 
 # noinspection PyProtectedMember
-from pydantic._internal._typing_extra import is_none_type
-
-# noinspection PyProtectedMember
 from pydantic.fields import FieldInfo
 from sqlalchemy import and_, false, not_, or_
 from sqlalchemy.orm import aliased
@@ -26,6 +23,7 @@ from fastapi_jsonapi.schema import (
     get_model_field,
     get_relationship_fields_names,
     get_schema_from_field_annotation,
+    is_none_type,
 )
 from fastapi_jsonapi.types_metadata import CustomFilterSQL, CustomSortSQL
 
