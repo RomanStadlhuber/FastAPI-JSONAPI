@@ -50,7 +50,7 @@ def create_filter_parameter(
         and issubclass(field.annotation, Enum)
         and hasattr(field.annotation, "values")
     ):
-        default = Query(None, alias=query_filter_name, enum=list(field.annotation))
+        default = Query(None, alias=query_filter_name, json_schema_extra={"enum": list(field.annotation)})
         type_field = str
     elif not field_annotation_is_scalar_sequence(field.annotation):
         default = Query(None, alias=query_filter_name)
